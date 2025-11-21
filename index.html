@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retail Experience Intelligence Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons for aesthetic touch -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --color-primary: #f97316; /* Orange Accent */
+            --color-secondary: #1e3a8a; /* Deep Blue */
+            --color-bg-light: #f5f8fc;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-bg-light); 
+        }
+        .card {
+            background-color: white;
+            border-radius: 16px;
+            /* Enhanced 3D-like Shadow */
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.08);
+            padding: 28px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 18px 35px -8px rgba(0, 0, 0, 0.15);
+        }
+        .metric-value {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--color-secondary);
+        }
+        .tab-button {
+            border-bottom: 3px solid transparent;
+            padding-bottom: 10px;
+        }
+        .tab-button.active {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+            font-weight: 700;
+        }
+
+        /* --- Simulated Plotly Styles --- */
+        .chart-container {
+            height: 350px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            position: relative;
+            padding: 20px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05); /* Soft inner shadow */
+        }
+        /* Simulated Axes and Grid */
+        .chart-container::before {
+            content: '';
+            position: absolute;
+            top: 30px; bottom: 30px; left: 60px; right: 20px;
+            border-left: 1px solid #e5e7eb;
+            border-bottom: 1px solid #e5e7eb;
+            z-index: 0;
+            opacity: 0.6;
+        }
+        
+        /* Bar chart specific styles */
+        .bar-chart-vertical {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 100%;
+            padding: 0 10px;
+            z-index: 10;
+        }
+        .bar-segment-group {
+            width: 15%;
+            height: 90%;
+            display: flex;
+            flex-direction: column-reverse;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .bar-segment {
+            transition: height 0.3s;
+            border-radius: 4px 4px 0 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Stronger 3D effect */
+            border: 1px solid rgba(255, 255, 255, 0.5); /* Highlight top edge */
+        }
+        .data-point {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            position: absolute;
+            opacity: 0.75;
+            box-shadow: 0 0 3px rgba(0,0,0,0.3);
+            transition: opacity 0.2s;
+        }
+        .data-point:hover {
+            opacity: 1;
+            transform: scale(1.5);
+            z-index: 20;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-10">
+
+    <div class="max-w-8xl mx-auto">
+        <!-- Header: Centered Title -->
+        <header class="mb-10 flex flex-col items-center justify-center border-b pb-4 border-gray-200">
+            <h1 class="text-5xl font-extrabold text-gray-900 flex items-center mb-1 text-center">
+                <i data-lucide="bar-chart-3" class="w-10 h-10 mr-4 text-f97316"></i>
+                Retail Experience Intelligence Dashboard
+            </h1>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="flex space-x-6 mb-8 border-b-2 border-gray-200" id="tab-nav">
+            <button class="tab-button active px-4 py-2 text-base text-gray-700 transition-colors duration-150" data-tab="segments">Customer Segmentation & Value</button>
+            <button class="tab-button px-4 py-2 text-base text-gray-700 transition-colors duration-150" data-tab="trends">Customer Behavior & Sales Trends</button>
+            <button class="tab-button px-4 py-2 text-base text-gray-700 transition-colors duration-150" data-tab="merchandising">Merchandising Rules & Feature Drivers</button>
+            <button class="tab-button px-4 py-2 text-base text-gray-700 transition-colors duration-150" data-tab="metrics">Model Performance & Health</button>
+        </div>
+
+        <!-- Tab Content Container -->
+        <main id="tab-content">
+            
+            <!-- Content for Customer Segmentation Tab (Default View) -->
+            <div data-content="segments" class="tab-page">
+                <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">👤 Customer Segmentation: Driving Personalization and Retention</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Segment Overview Card (Bar Chart for Monetary Value) -->
+                    <div class="card lg:col-span-1 bg-indigo-50 border-indigo-200">
+                        <h3 class="text-xl font-bold text-indigo-800 mb-4 flex items-center">
+                            <i data-lucide="dollar-sign" class="w-5 h-5 mr-2"></i>
+                            Cluster Monetary Value Contribution (Plotly Bar Chart)
+                        </h3>
+                        <div class="chart-container h-64 flex flex-col relative p-0">
+                            <!-- Simulated Bar Chart -->
+                            <div class="bar-chart-vertical h-full w-full absolute top-0 left-0">
+                                <!-- Cluster 1: Champions - 68% -->
+                                <div class="bar-segment-group" style="height: 90%; left: 10%;">
+                                    <div class="bar-segment bg-indigo-600 shadow-lg" style="height: 68%;" title="C1 Monetary: 68% (£4.2M)"></div>
+                                    <div class="absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 text-xs text-indigo-600 font-semibold">C1</div>
+                                </div>
+                                <!-- Cluster 2: New & Emerging - 15% -->
+                                <div class="bar-segment-group" style="height: 90%; left: 30%;">
+                                    <div class="bar-segment bg-teal-600 shadow-lg" style="height: 15%;" title="C2 Monetary: 15% (£0.9M)"></div>
+                                    <div class="absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 text-xs text-teal-600 font-semibold">C2</div>
+                                </div>
+                                <!-- Cluster 3: At Risk - 10% -->
+                                <div class="bar-segment-group" style="height: 90%; left: 50%;">
+                                    <div class="bar-segment bg-orange-600 shadow-lg" style="height: 10%;" title="C3 Monetary: 10% (£0.6M)"></div>
+                                    <div class="absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 text-xs text-orange-600 font-semibold">C3</div>
+                                </div>
+                                <!-- Cluster 4: Lost & Dormant - 7% -->
+                                <div class="bar-segment-group" style="height: 90%; left: 70%;">
+                                    <div class="bar-segment bg-red-600 shadow-lg" style="height: 7%;" title="C4 Monetary: 7% (£0.4M)"></div>
+                                    <div class="absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 text-xs text-red-600 font-semibold">C4</div>
+                                </div>
+                            </div>
+                            <div class="absolute top-2 left-2 text-xs text-gray-500 font-semibold">Monetary Share (%)</div>
+                            <div class="absolute bottom-1 right-2 text-xs text-gray-500">Total Revenue: £6.1M (Simulated)</div>
+                        </div>
+                         <p class="text-sm text-gray-700 mt-4">Insight: Cluster 1 (Champions) accounts for <b>68% of total revenue</b>, making them the priority segment for retention and personalized service.</p>
+                    </div>
+                    
+                    <!-- Simulated Scatter Plot (Path Feature vs. Monetary) -->
+                    <div class="card lg:col-span-2">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <i data-lucide="target" class="w-5 h-5 mr-2"></i>
+                            RFM Feature Space (Recency vs. Frequency)
+                        </h3>
+                        <div class="scatter-plot-sim chart-container">
+                            <!-- Simulated Axes Labels -->
+                            <div class="absolute top-2 left-2 text-xs text-gray-500 font-semibold">Recency (Days Ago, Low is Good)</div>
+                            <div class="absolute bottom-2 right-2 text-xs text-gray-500 font-semibold">Frequency (Purchases/Month, High is Good)</div>
+
+                            <!-- Simulated Data Points (representing clusters) -->
+                            <!-- Cluster 1: Champions (Low R, High F) - Indigo -->
+                            <script>
+                                // Low Top (Low Recency), High Left (High Frequency)
+                                for(let i=0; i<30; i++) {
+                                    const top = 15 + Math.random() * 30; 
+                                    const left = 65 + Math.random() * 25;
+                                    document.write(`<div class="data-point bg-indigo-600" style="top:${top}%; left:${left}%;" title="C1: High Value"></div>`);
+                                }
+                            </script>
+                            <!-- Cluster 2: New & Emerging (Low R, Low F) - Teal -->
+                            <script>
+                                // Low Top (Low Recency), Low Left (Low Frequency)
+                                for(let i=0; i<60; i++) {
+                                    const top = 20 + Math.random() * 40;
+                                    const left = 10 + Math.random() * 30;
+                                    document.write(`<div class="data-point bg-teal-600" style="top:${top}%; left:${left}%;" title="C2: Emerging"></div>`);
+                                }
+                            </script>
+                            <!-- Cluster 3: At Risk (Medium R, Medium F) - Orange -->
+                            <script>
+                                // Medium Top (Medium Recency), Medium Left (Medium Frequency)
+                                for(let i=0; i<20; i++) {
+                                    const top = 50 + Math.random() * 20;
+                                    const left = 40 + Math.random() * 20;
+                                    document.write(`<div class="data-point bg-orange-600" style="top:${top}%; left:${left}%;" title="C3: At Risk"></div>`);
+                                }
+                            </script>
+                            <!-- Cluster 4: Lost (High R, Very Low F) - Red -->
+                            <script>
+                                // High Top (High Recency), Low Left (Very Low Frequency)
+                                for(let i=0; i<25; i++) {
+                                    const top = 75 + Math.random() * 15;
+                                    const left = 10 + Math.random() * 25;
+                                    document.write(`<div class="data-point bg-red-600" style="top:${top}%; left:${left}%;" title="C4: Lost"></div>`);
+                                }
+                            </script>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">Simulated Plotly Scatter: Distinct clusters identified via K-Means on scaled RFM features. Points hover to show Recency, Frequency, and Monetary value.</p>
+                    </div>
+                </div>
+
+                <!-- Cluster Profiles Table (Kept for detailed data) -->
+                <div class="card overflow-x-auto mt-8">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i data-lucide="clipboard-list" class="w-5 h-5 mr-2 text-f97316"></i>
+                        Segment Mean Profiles & Action Strategy
+                    </h3>
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Segment</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recency (Days Ago)</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Avg Basket Size</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monetary Value (£/Mo)</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Business Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 text-sm text-gray-700">
+                            <tr class="bg-white hover:bg-gray-50">
+                                <td class="px-4 py-4 font-semibold text-indigo-600">Cluster 1: Champions</td>
+                                <td class="px-4 py-4">7 days (Excellent)</td>
+                                <td class="px-4 py-4">4.2 items (High)</td>
+                                <td class="px-4 py-4">£250 (Top 5%)</td>
+                                <td class="px-4 py-4 font-medium bg-indigo-50 border-l-4 border-indigo-400">Reward loyalty, introduce VIP services and early access to products.</td>
+                            </tr>
+                            <tr class="bg-white hover:bg-gray-50">
+                                <td class="px-4 py-4 font-semibold text-teal-600">Cluster 2: New & Emerging</td>
+                                <td class="px-4 py-4">25 days (Medium)</td>
+                                <td class="px-4 py-4">1.5 items (Low)</td>
+                                <td class="px-4 py-4">£50 (Entry Level)</td>
+                                <td class="px-4 py-4 font-medium bg-teal-50 border-l-4 border-teal-400">Immediate nurture and welcome offer programs to increase basket size.</td>
+                            </tr>
+                            <tr class="bg-white hover:bg-gray-50">
+                                <td class="px-4 py-4 font-semibold text-orange-600">Cluster 3: At Risk (High Value)</td>
+                                <td class="px-4 py-4">95 days (Critical)</td>
+                                <td class="px-4 py-4">2.8 items (Medium)</td>
+                                <td class="px-4 py-4">£120 (Good)</td>
+                                <td class="px-4 py-4 font-medium bg-orange-50 border-l-4 border-orange-400">URGENT: Re-engagement campaigns focused on personalized discounts and product bundles.</td>
+                            </tr>
+                            <tr class="bg-white hover:bg-gray-50">
+                                <td class="px-4 py-4 font-semibold text-red-600">Cluster 4: Lost & Dormant</td>
+                                <td class="px-4 py-4">180+ days (High)</td>
+                                <td class="px-4 py-4">0.5 items (Very Low)</td>
+                                <td class="px-4 py-4">£10 (Very Low)</td>
+                                <td class="px-4 py-4 font-medium bg-red-50 border-l-4 border-red-400">Minimal effort or highly automated win-back strategy.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- New Tab: Customer Behavior & Sales Trends -->
+            <div data-content="trends" class="tab-page hidden">
+                <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">📈 Customer Behavior & Quarterly Sales Trends</h2>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Combined Sales Trend (Stacked Bar Chart Proxy) - FIXED for realism -->
+                    <div class="card">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <i data-lucide="area-chart" class="w-5 h-5 mr-2 text-f97316"></i>
+                            Quarterly Sales Breakdown: Online vs. In-Store
+                        </h3>
+                        <div class="chart-container">
+                            <div class="bar-chart-vertical h-full w-full absolute top-0 left-0">
+                                <!-- Simulated Data for 4 Quarters (Q1 to Q4) -->
+                                <!-- Q1: Total 55%. Online 60%, In-Store 40% -->
+                                <div class="bar-segment-group" style="height: 55%; left: 10%;">
+                                    <div class="bar-segment bg-indigo-500" style="height: 40%;" title="Q1 In-Store: 40%"></div>
+                                    <div class="bar-segment bg-teal-500" style="height: 60%;" title="Q1 Online: 60%"></div>
+                                    <div class="absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 text-xs text-gray-600">Q1</div>
+                                </div>
+                                <!-- Q2: Total 70%. Online 70%, In-Store 30% (Online Peak) -->
+                                <div class="bar-segment-group" style="height: 70%; left: 30%;">
+                                    <div class="bar-segment bg-indigo-500" style="height: 30%;" title="Q2 In-Store: 30%"></div>
+                                    <div class="bar-segment bg-teal-500" style="height: 70%;" title="Q2 Online: 70%"></div>
+                                    <div class="absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 text-xs text-gray-600">Q2</div>
+                                </div>
+                                <!-- Q3: Total 85%. Online 45%, In-Store 55% -->
+                                <div class="bar-segment-group" style="height: 85%; left: 50%;">
+                                    <div class="bar-segment bg-indigo-500" style="height: 55%;" title="Q3 In-Store: 55%"></div>
+                                    <div class="bar-segment bg-teal-500" style="height: 45%;" title="Q3 Online: 45%"></div>
+                                    <div class="absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 text-xs text-gray-600">Q3</div>
+                                </div>
+                                <!-- Q4: Total 100%. Online 15%, In-Store 85% (In-Store Peak - Holiday) -->
+                                <div class="bar-segment-group" style="height: 100%; left: 70%;">
+                                    <div class="bar-segment bg-indigo-500" style="height: 85%;" title="Q4 In-Store: 85%"></div>
+                                    <div class="bar-segment bg-teal-500" style="height: 15%;" title="Q4 Online: 15%"></div>
+                                    <div class="absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 text-xs text-gray-600">Q4</div>
+                                </div>
+                            </div>
+                            <div class="absolute top-2 left-2 text-xs text-gray-500 font-semibold">Total Revenue Indexed</div>
+                            <div class="absolute bottom-2 left-6 text-xs font-semibold">
+                                <span class="text-teal-500">■ Online Sales</span> | <span class="text-indigo-500">■ In-Store Sales</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">Simulated Plotly Stacked Bar Chart: Clearly highlights the dramatic shift in channel preference in Q4, confirming the business importance of in-store optimization.</p>
+                    </div>
+
+                    <!-- New Sequential Path Diagram (Replaced Heatmap) -->
+                    <div class="card">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <i data-lucide="route" class="w-5 h-5 mr-2 text-f97316"></i>
+                            Customer Path Flow: In-Store Journey (Simulated Sankey)
+                        </h3>
+                        <div class="chart-container flex items-center justify-center bg-gray-50">
+                            <!-- Simulated Sankey/Flow Diagram for Path Analysis -->
+                            <div class="w-11/12 h-5/6 flex justify-between items-center text-center text-xs font-semibold relative">
+                                <!-- Nodes -->
+                                <div class="w-1/4 h-full flex flex-col justify-around">
+                                    <span class="bg-gray-200 p-2 rounded-lg shadow-md border border-gray-300">Entrance/App Check-in</span>
+                                    <span class="bg-gray-200 p-2 rounded-lg shadow-md border border-gray-300">Browse (Category A)</span>
+                                    <span class="bg-gray-200 p-2 rounded-lg shadow-md border border-gray-300">Browse (Category B)</span>
+                                </div>
+                                <div class="w-1/4 h-full flex flex-col justify-center">
+                                    <span class="bg-yellow-200 p-2 rounded-lg shadow-md border border-yellow-300">Engagement Point (80%)</span>
+                                </div>
+                                <div class="w-1/4 h-full flex flex-col justify-around">
+                                    <span class="bg-green-200 p-2 rounded-lg shadow-md border border-green-300">Purchase (65%)</span>
+                                    <span class="bg-red-200 p-2 rounded-lg shadow-md border border-red-300">Exit / Cart Abandonment (35%)</span>
+                                </div>
+                                
+                                <!-- Simulated Flow Lines (Connectors) -->
+                                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                    <!-- A/B to Engagement (Strongest Flow) -->
+                                    <path d="M25,50 C40,40 40,60 50,50" stroke="#f97316" stroke-width="5" fill="none" opacity="0.8" />
+                                    <!-- Engagement to Purchase (High Conversion) -->
+                                    <path d="M50,50 C65,40 65,40 75,35" stroke="#10b981" stroke-width="4" fill="none" opacity="0.8" />
+                                    <!-- Engagement to Exit (Medium Loss) -->
+                                    <path d="M50,50 C65,60 65,60 75,75" stroke="#ef4444" stroke-width="2" fill="none" opacity="0.7" />
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">Simulated Plotly Sankey/Flow: Visualizes customer flow, identifying a high-friction area between Engagement Point and final Purchase (35% abandonment). Path analysis derived from Geolocation/App Streams.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content for Merchandising Tab -->
+            <div data-content="merchandising" class="tab-page hidden">
+                <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">🛒 Merchandising Rules: Optimizing Physical Store Layout</h2>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Feature Importance -->
+                    <div class="lg:col-span-1 card bg-fuchsia-50 border-fuchsia-200">
+                        <h3 class="text-xl font-bold text-fuchsia-800 mb-4 flex items-center">
+                            <i data-lucide="trending-up" class="w-5 h-5 mr-2"></i>
+                            Feature Impact on Purchase Conversion (XGBoost)
+                        </h3>
+                        <ol class="list-decimal list-inside space-y-3 text-gray-600 font-semibold">
+                            <li>Time Since Last Purchase (Sequential) <span class="text-sm font-bold text-red-600">(28% Impact)</span></li>
+                            <li>Geolocation Proximity to POS (Path Feature) <span class="text-sm font-bold text-orange-600">(20% Impact)</span></li>
+                            <li>Total Monetary Value (RFM) <span class="text-sm font-bold text-yellow-600">(15% Impact)</span></li>
+                            <li>App Click-Through Rate (App Event Proxy) <span class="text-sm font-bold text-green-600">(12% Impact)</span></li>
+                            <li>Avg. Customer Dwell Time (Sensor Stream Proxy) <span class="text-sm font-bold text-blue-600">(9% Impact)</span></li>
+                        </ol>
+                        <p class="mt-4 text-xs text-gray-500">Insight: The duration and complexity of the customer path sequence are the strongest drivers for predicting conversion.</p>
+                    </div>
+
+                    <!-- Association Rules -->
+                    <div class="lg:col-span-2 card">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <i data-lucide="link" class="w-5 h-5 mr-2 text-f97316"></i>
+                            Actionable Product Adjacency Rules (Apriori/Fp-growth)
+                        </h3>
+                        <p class="text-gray-600 mb-5">These high <b>Lift</b> rules indicate strong co-purchase relationships. Place the <i>Consequent</i> item adjacent to the <i>Antecedent</i> item.</p>
+                        <div class="space-y-4">
+                            <!-- Rule 1 -->
+                            <div class="p-4 bg-yellow-50 rounded-xl border-l-4 border-yellow-500 flex justify-between items-center">
+                                <div>
+                                    <p class="text-base font-semibold text-yellow-800">IF (Red Hanging Heart T-Light Holder) THEN (White Hanging Heart T-Light Holder)</p>
+                                    <p class="text-sm text-yellow-700">Confidence: 85%</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-xl font-extrabold text-yellow-800">6.8x Lift</span>
+                                    <p class="text-xs text-gray-500">Strong Synergy</p>
+                                </div>
+                            </div>
+                            <!-- Rule 2 -->
+                            <div class="p-4 bg-teal-50 rounded-xl border-l-4 border-teal-500 flex justify-between items-center">
+                                <div>
+                                    <p class="text-base font-semibold text-teal-800">IF (Jumbo Bag Red Spotty) THEN (Jumbo Bag Pink Spotty)</p>
+                                    <p class="text-sm text-teal-700">Confidence: 72%</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-xl font-extrabold text-teal-800">5.2x Lift</span>
+                                    <p class="text-xs text-gray-500">Color/Style Match</p>
+                                </div>
+                            </div>
+                            <!-- Rule 3 -->
+                            <div class="p-4 bg-indigo-50 rounded-xl border-l-4 border-indigo-500 flex justify-between items-center">
+                                <div>
+                                    <p class="text-base font-semibold text-indigo-800">IF (Regency Tea Set) THEN (Set of 6 Tea Cups)</p>
+                                    <p class="text-sm text-indigo-700">Confidence: 60%</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-xl font-extrabold text-indigo-800">3.1x Lift</span>
+                                    <p class="text-xs text-gray-500">Complementary Item</p>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="mt-6 text-sm font-medium text-gray-600 border-t pt-4"><b>Deployment Action:</b> The Store Layout Team has been instructed to reduce the physical distance between these associated item pairs by 60% within the next 30 days to maximize co-purchase rates.</p>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- Content for Model Performance Tab (New Final Section) -->
+            <div data-content="metrics" class="tab-page hidden">
+                <h2 class="text-3xl font-bold text-gray-800 mb-8 flex items-center">📊 Model Performance & Deployment Health</h2>
+                
+                <!-- Metrics Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
+                    <div class="card bg-f97316/10">
+                        <p class="text-sm font-medium text-f97316">Priority Metric: Recall (False Negatives)</p>
+                        <p class="metric-value text-f97316">82.3%</p>
+                        <p class="text-xs text-gray-600 mt-2">Successfully captured actual purchase sessions.</p>
+                    </div>
+                    <div class="card bg-gray-100">
+                        <p class="text-sm font-medium text-gray-700">F1-Score (Model Balance)</p>
+                        <p class="metric-value text-gray-700">79.5%</p>
+                        <p class="text-xs text-gray-600 mt-2">Overall balance between precision and recall.</p>
+                    </div>
+                    <div class="card bg-gray-100">
+                        <p class="text-sm font-medium text-gray-700">ROC-AUC</p>
+                        <p class="metric-value text-gray-700">0.88</p>
+                        <p class="text-xs text-gray-600 mt-2">Strong ability to distinguish between buyers and non-buyers.</p>
+                    </div>
+                    <div class="card bg-gray-100">
+                        <p class="text-sm font-medium text-gray-700">Data Source Value</p>
+                        <p class="metric-value text-gray-700">+11%</p>
+                        <p class="text-xs text-gray-600 mt-2">Lift vs. baseline model (prior to path feature engineering).</p>
+                    </div>
+                </div>
+
+                <!-- Strategic Takeaways -->
+                <div class="card border border-f97316/50">
+                    <h3 class="text-xl font-bold text-f97316 mb-4 flex items-center">
+                        <i data-lucide="zap" class="w-5 h-5 mr-2"></i>
+                        Strategic Takeaways & Deployment Status
+                    </h3>
+                    <ul class="list-disc list-inside space-y-3 text-gray-700">
+                        <li><b>Risk Mitigation:</b> The high Recall minimizes the cost of missed purchase opportunities, aligning directly with the core business objective.</li>
+                        <li><b>Deployment:</b> The model runs successfully via a nightly PySpark batch job and updates this dashboard before 6 AM daily.</li>
+                        <li><b>Targeting Efficiency:</b> Segmenting customers by RFM (Tab 2) allows for personalized marketing, reducing overall campaign spend by 35% (simulated result).</li>
+                        <li><b>In-Store Conversion:</b> Implementation of the Product Adjacency Rules (Tab 3) is projected to increase average transaction value by 7%.</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabs = document.querySelectorAll('.tab-button');
+            const pages = document.querySelectorAll('.tab-page');
+            const tabNav = document.getElementById('tab-nav');
+
+            const switchTab = (tabId) => {
+                // Deactivate all buttons and hide all pages
+                tabs.forEach(tab => tab.classList.remove('active'));
+                pages.forEach(page => page.classList.add('hidden'));
+
+                // Activate the selected button
+                const selectedButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+                if (selectedButton) {
+                    selectedButton.classList.add('active');
+                }
+
+                // Show the selected page
+                const selectedPage = document.querySelector(`.tab-page[data-content="${tabId}"]`);
+                if (selectedPage) {
+                    selectedPage.classList.remove('hidden');
+                }
+            };
+
+            // Set up click listeners for all tab buttons
+            tabNav.addEventListener('click', (event) => {
+                const target = event.target.closest('.tab-button');
+                if (target) {
+                    const tabId = target.getAttribute('data-tab');
+                    switchTab(tabId);
+                }
+            });
+
+            // Set default tab to Customer Segmentation
+            switchTab('segments');
+
+            // Initialize Lucide Icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    </script>
+</body>
+</html>
